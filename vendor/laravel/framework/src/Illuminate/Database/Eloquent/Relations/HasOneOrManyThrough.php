@@ -77,6 +77,7 @@ abstract class HasOneOrManyThrough extends Relation
      * @param  string  $secondKey
      * @param  string  $localKey
      * @param  string  $secondLocalKey
+     * @return void
      */
     public function __construct(Builder $query, Model $farParent, Model $throughParent, $firstKey, $secondKey, $localKey, $secondLocalKey)
     {
@@ -97,14 +98,12 @@ abstract class HasOneOrManyThrough extends Relation
      */
     public function addConstraints()
     {
-        $query = $this->getRelationQuery();
-
         $localValue = $this->farParent[$this->localKey];
 
-        $this->performJoin($query);
+        $this->performJoin();
 
         if (static::$constraints) {
-            $query->where($this->getQualifiedFirstKeyName(), '=', $localValue);
+            $this->query->where($this->getQualifiedFirstKeyName(), '=', $localValue);
         }
     }
 
@@ -116,7 +115,7 @@ abstract class HasOneOrManyThrough extends Relation
      */
     protected function performJoin(?Builder $query = null)
     {
-        $query ??= $this->query;
+        $query = $query ?: $this->query;
 
         $farKey = $this->getQualifiedFarKeyName();
 
@@ -169,8 +168,7 @@ abstract class HasOneOrManyThrough extends Relation
         $this->whereInEager(
             $whereIn,
             $this->getQualifiedFirstKeyName(),
-            $this->getKeys($models, $this->localKey),
-            $this->getRelationQuery(),
+            $this->getKeys($models, $this->localKey)
         );
     }
 
@@ -345,23 +343,6 @@ abstract class HasOneOrManyThrough extends Relation
     }
 
     /**
-     * Find a sole related model by its primary key.
-     *
-     * @param  mixed  $id
-     * @param  array  $columns
-     * @return TRelatedModel
-     *
-     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException<TRelatedModel>
-     * @throws \Illuminate\Database\MultipleRecordsFoundException
-     */
-    public function findSole($id, $columns = ['*'])
-    {
-        return $this->where(
-            $this->getRelated()->getQualifiedKeyName(), '=', $id
-        )->sole($columns);
-    }
-
-    /**
      * Find multiple related models by their primary keys.
      *
      * @param  \Illuminate\Contracts\Support\Arrayable|array  $ids
@@ -470,7 +451,7 @@ abstract class HasOneOrManyThrough extends Relation
      * @param  array  $columns
      * @param  string  $pageName
      * @param  int  $page
-     * @return \Illuminate\Pagination\LengthAwarePaginator
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
      */
     public function paginate($perPage = null, $columns = ['*'], $pageName = 'page', $page = null)
     {

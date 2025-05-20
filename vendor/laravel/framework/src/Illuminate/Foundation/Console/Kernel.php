@@ -131,6 +131,7 @@ class Kernel implements KernelContract
      *
      * @param  \Illuminate\Contracts\Foundation\Application  $app
      * @param  \Illuminate\Contracts\Events\Dispatcher  $events
+     * @return void
      */
     public function __construct(Application $app, Dispatcher $events)
     {
@@ -162,13 +163,13 @@ class Kernel implements KernelContract
 
             $this->symfonyDispatcher->addListener(ConsoleEvents::COMMAND, function (ConsoleCommandEvent $event) {
                 $this->events->dispatch(
-                    new CommandStarting($event->getCommand()?->getName() ?? '', $event->getInput(), $event->getOutput())
+                    new CommandStarting($event->getCommand()->getName(), $event->getInput(), $event->getOutput())
                 );
             });
 
             $this->symfonyDispatcher->addListener(ConsoleEvents::TERMINATE, function (ConsoleTerminateEvent $event) {
                 $this->events->dispatch(
-                    new CommandFinished($event->getCommand()?->getName() ?? '', $event->getInput(), $event->getOutput(), $event->getExitCode())
+                    new CommandFinished($event->getCommand()->getName(), $event->getInput(), $event->getOutput(), $event->getExitCode())
                 );
             });
         }
@@ -537,8 +538,8 @@ class Kernel implements KernelContract
     {
         if (is_null($this->artisan)) {
             $this->artisan = (new Artisan($this->app, $this->events, $this->app->version()))
-                ->resolveCommands($this->commands)
-                ->setContainerCommandLoader();
+                                    ->resolveCommands($this->commands)
+                                    ->setContainerCommandLoader();
 
             if ($this->symfonyDispatcher instanceof EventDispatcher) {
                 $this->artisan->setDispatcher($this->symfonyDispatcher);

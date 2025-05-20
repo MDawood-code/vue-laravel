@@ -46,6 +46,7 @@ class SqsQueue extends Queue implements QueueContract, ClearableQueue
      * @param  string  $prefix
      * @param  string  $suffix
      * @param  bool  $dispatchAfterCommit
+     * @return void
      */
     public function __construct(
         SqsClient $sqs,
@@ -128,7 +129,7 @@ class SqsQueue extends Queue implements QueueContract, ClearableQueue
     {
         return $this->enqueueUsing(
             $job,
-            $this->createPayload($job, $queue ?: $this->default, $data, $delay),
+            $this->createPayload($job, $queue ?: $this->default, $data),
             $queue,
             $delay,
             function ($payload, $queue, $delay) {

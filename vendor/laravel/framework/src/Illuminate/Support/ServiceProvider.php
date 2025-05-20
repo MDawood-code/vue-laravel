@@ -76,6 +76,7 @@ abstract class ServiceProvider
      * Create a new service provider instance.
      *
      * @param  \Illuminate\Contracts\Foundation\Application  $app
+     * @return void
      */
     public function __construct($app)
     {
@@ -235,17 +236,17 @@ abstract class ServiceProvider
     }
 
     /**
-     * Register a translation file namespace or path.
+     * Register a translation file namespace.
      *
      * @param  string  $path
-     * @param  string|null  $namespace
+     * @param  string  $namespace
      * @return void
      */
-    protected function loadTranslationsFrom($path, $namespace = null)
+    protected function loadTranslationsFrom($path, $namespace)
     {
-        $this->callAfterResolving('translator', fn ($translator) => is_null($namespace)
-            ? $translator->addPath($path)
-            : $translator->addNamespace($namespace, $path));
+        $this->callAfterResolving('translator', function ($translator) use ($path, $namespace) {
+            $translator->addNamespace($namespace, $path);
+        });
     }
 
     /**

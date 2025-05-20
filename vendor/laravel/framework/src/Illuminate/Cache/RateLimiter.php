@@ -4,7 +4,6 @@ namespace Illuminate\Cache;
 
 use Closure;
 use Illuminate\Contracts\Cache\Repository as Cache;
-use Illuminate\Redis\Connections\PhpRedisConnection;
 use Illuminate\Support\Collection;
 use Illuminate\Support\InteractsWithTime;
 
@@ -32,6 +31,7 @@ class RateLimiter
      * Create a new rate limiter instance.
      *
      * @param  \Illuminate\Contracts\Cache\Repository  $cache
+     * @return void
      */
     public function __construct(Cache $cache)
     {
@@ -99,7 +99,7 @@ class RateLimiter
      * @param  string  $key
      * @param  int  $maxAttempts
      * @param  \Closure  $callback
-     * @param  \DateTimeInterface|\DateInterval|int  $decaySeconds
+     * @param  int  $decaySeconds
      * @return mixed
      */
     public function attempt($key, $maxAttempts, Closure $callback, $decaySeconds = 60)
@@ -141,7 +141,7 @@ class RateLimiter
      * Increment (by 1) the counter for a given key for a given decay time.
      *
      * @param  string  $key
-     * @param  \DateTimeInterface|\DateInterval|int  $decaySeconds
+     * @param  int  $decaySeconds
      * @return int
      */
     public function hit($key, $decaySeconds = 60)
@@ -153,7 +153,7 @@ class RateLimiter
      * Increment the counter for a given key for a given decay time by a given amount.
      *
      * @param  string  $key
-     * @param  \DateTimeInterface|\DateInterval|int  $decaySeconds
+     * @param  int  $decaySeconds
      * @param  int  $amount
      * @return int
      */
@@ -165,16 +165,12 @@ class RateLimiter
             $key.':timer', $this->availableAt($decaySeconds), $decaySeconds
         );
 
-        $added = $this->withoutSerializationOrCompression(
-            fn () => $this->cache->add($key, 0, $decaySeconds)
-        );
+        $added = $this->cache->add($key, 0, $decaySeconds);
 
         $hits = (int) $this->cache->increment($key, $amount);
 
         if (! $added && $hits == 1) {
-            $this->withoutSerializationOrCompression(
-                fn () => $this->cache->put($key, 1, $decaySeconds)
-            );
+            $this->cache->put($key, 1, $decaySeconds);
         }
 
         return $hits;
@@ -184,7 +180,7 @@ class RateLimiter
      * Decrement the counter for a given key for a given decay time by a given amount.
      *
      * @param  string  $key
-     * @param  \DateTimeInterface|\DateInterval|int  $decaySeconds
+     * @param  int  $decaySeconds
      * @param  int  $amount
      * @return int
      */
@@ -203,7 +199,7 @@ class RateLimiter
     {
         $key = $this->cleanRateLimiterKey($key);
 
-        return $this->withoutSerializationOrCompression(fn () => $this->cache->get($key, 0));
+        return $this->cache->get($key, 0);
     }
 
     /**
@@ -284,29 +280,6 @@ class RateLimiter
     public function cleanRateLimiterKey($key)
     {
         return preg_replace('/&([a-z])[a-z]+;/i', '$1', htmlentities($key));
-    }
-
-    /**
-     * Execute the given callback without serialization or compression when applicable.
-     *
-     * @param  callable  $callback
-     * @return mixed
-     */
-    protected function withoutSerializationOrCompression(callable $callback)
-    {
-        $store = $this->cache->getStore();
-
-        if (! $store instanceof RedisStore) {
-            return $callback();
-        }
-
-        $connection = $store->connection();
-
-        if (! $connection instanceof PhpRedisConnection) {
-            return $callback();
-        }
-
-        return $connection->withoutSerializationOrCompression($callback);
     }
 
     /**

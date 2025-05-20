@@ -53,7 +53,7 @@ class DumpCommand extends Command
 
         if ($this->option('prune')) {
             (new Filesystem)->deleteDirectory(
-                $path = database_path('migrations'), preserve: false
+                $path = database_path('migrations'), $preserve = false
             );
 
             $info .= ' and pruned';
@@ -77,10 +77,10 @@ class DumpCommand extends Command
         $migrationTable = is_array($migrations) ? ($migrations['table'] ?? 'migrations') : $migrations;
 
         return $connection->getSchemaState()
-            ->withMigrationTable($migrationTable)
-            ->handleOutputUsing(function ($type, $buffer) {
-                $this->output->write($buffer);
-            });
+                ->withMigrationTable($migrationTable)
+                ->handleOutputUsing(function ($type, $buffer) {
+                    $this->output->write($buffer);
+                });
     }
 
     /**

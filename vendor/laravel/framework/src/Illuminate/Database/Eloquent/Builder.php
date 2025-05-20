@@ -54,13 +54,6 @@ class Builder implements BuilderContract
     protected $model;
 
     /**
-     * The attributes that should be added to new models created by this builder.
-     *
-     * @var array
-     */
-    public $pendingAttributes = [];
-
-    /**
      * The relationships that should be eager loaded.
      *
      * @var array
@@ -158,16 +151,10 @@ class Builder implements BuilderContract
     protected $afterQueryCallbacks = [];
 
     /**
-     * The callbacks that should be invoked on clone.
-     *
-     * @var array
-     */
-    protected $onCloneCallbacks = [];
-
-    /**
      * Create a new Eloquent query builder instance.
      *
      * @param  \Illuminate\Database\Query\Builder  $query
+     * @return void
      */
     public function __construct(QueryBuilder $query)
     {
@@ -323,8 +310,6 @@ class Builder implements BuilderContract
         if ($column instanceof Closure && is_null($operator)) {
             $column($query = $this->model->newQueryWithoutRelationships());
 
-            $this->eagerLoad = array_merge($this->eagerLoad, $query->getEagerLoads());
-
             $this->query->addNestedWhereQuery($query->getQuery(), $boolean);
         } else {
             $this->query->where(...func_get_args());
@@ -447,67 +432,6 @@ class Builder implements BuilderContract
     }
 
     /**
-     * Insert into the database after merging the model's default attributes, setting timestamps, and casting values.
-     *
-     * @param  array<int, array<string, mixed>>  $values
-     * @return bool
-     */
-    public function fillAndInsert(array $values)
-    {
-        return $this->insert($this->fillForInsert($values));
-    }
-
-    /**
-     * Insert (ignoring errors) into the database after merging the model's default attributes, setting timestamps, and casting values.
-     *
-     * @param  array<int, array<string, mixed>>  $values
-     * @return int
-     */
-    public function fillAndInsertOrIgnore(array $values)
-    {
-        return $this->insertOrIgnore($this->fillForInsert($values));
-    }
-
-    /**
-     * Insert a record into the database and get its ID after merging the model's default attributes, setting timestamps, and casting values.
-     *
-     * @param  array<string, mixed>  $values
-     * @return int
-     */
-    public function fillAndInsertGetId(array $values)
-    {
-        return $this->insertGetId($this->fillForInsert([$values])[0]);
-    }
-
-    /**
-     * Enrich the given values by merging in the model's default attributes, adding timestamps, and casting values.
-     *
-     * @param  array<int, array<string, mixed>>  $values
-     * @return array<int, array<string, mixed>>
-     */
-    public function fillForInsert(array $values)
-    {
-        if (empty($values)) {
-            return [];
-        }
-
-        if (! is_array(reset($values))) {
-            $values = [$values];
-        }
-
-        $this->model->unguarded(function () use (&$values) {
-            foreach ($values as $key => $rowValues) {
-                $values[$key] = tap(
-                    $this->newModelInstance($rowValues),
-                    fn ($model) => $model->setUniqueIds()
-                )->getAttributes();
-            }
-        });
-
-        return $this->addTimestampsToUpsertValues($values);
-    }
-
-    /**
      * Create a collection of models from a raw query.
      *
      * @param  string  $query
@@ -535,21 +459,6 @@ class Builder implements BuilderContract
         }
 
         return $this->whereKey($id)->first($columns);
-    }
-
-    /**
-     * Find a sole model by its primary key.
-     *
-     * @param  mixed  $id
-     * @param  array|string  $columns
-     * @return TModel
-     *
-     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException<TModel>
-     * @throws \Illuminate\Database\MultipleRecordsFoundException
-     */
-    public function findSole($id, $columns = ['*'])
-    {
-        return $this->whereKey($id)->sole($columns);
     }
 
     /**
@@ -709,25 +618,6 @@ class Builder implements BuilderContract
         return tap($this->firstOrCreate($attributes, $values), function ($instance) use ($values) {
             if (! $instance->wasRecentlyCreated) {
                 $instance->fill($values)->save();
-            }
-        });
-    }
-
-    /**
-     * Create a record matching the attributes, or increment the existing record.
-     *
-     * @param  array  $attributes
-     * @param  string  $column
-     * @param  int|float  $default
-     * @param  int|float  $step
-     * @param  array  $extra
-     * @return TModel
-     */
-    public function incrementOrCreate(array $attributes, string $column = 'count', $default = 1, $step = 1, array $extra = [])
-    {
-        return tap($this->firstOrCreate($attributes, [$column => $default]), function ($instance) use ($column, $step, $extra) {
-            if (! $instance->wasRecentlyCreated) {
-                $instance->increment($column, $step, $extra);
             }
         });
     }
@@ -1060,7 +950,7 @@ class Builder implements BuilderContract
         if (! $this->model->hasAnyGetMutator($column) &&
             ! $this->model->hasCast($column) &&
             ! in_array($column, $this->model->getDates())) {
-            return $this->applyAfterQueryCallbacks($results);
+            return $results;
         }
 
         return $this->applyAfterQueryCallbacks(
@@ -1078,7 +968,7 @@ class Builder implements BuilderContract
      * @param  string  $pageName
      * @param  int|null  $page
      * @param  \Closure|int|null  $total
-     * @return \Illuminate\Pagination\LengthAwarePaginator
+     * @return \Illuminate\Contracts\Pagination\LengthAwarePaginator
      *
      * @throws \InvalidArgumentException
      */
@@ -1088,7 +978,10 @@ class Builder implements BuilderContract
 
         $total = value($total) ?? $this->toBase()->getCountForPagination();
 
-        $perPage = value($perPage, $total) ?: $this->model->getPerPage();
+        $perPage = ($perPage instanceof Closure
+            ? $perPage($total)
+            : $perPage
+        ) ?: $this->model->getPerPage();
 
         $results = $total
             ? $this->forPage($page, $perPage)->get($columns)
@@ -1565,8 +1458,7 @@ class Builder implements BuilderContract
         // scope so that we can properly group the added scope constraints in the
         // query as their own isolated nested where statement and avoid issues.
         $originalWhereCount = is_null($query->wheres)
-            ? 0
-            : count($query->wheres);
+                    ? 0 : count($query->wheres);
 
         $result = $scope(...$parameters) ?? $this;
 
@@ -1656,7 +1548,7 @@ class Builder implements BuilderContract
     }
 
     /**
-     * Specify relationships that should be eager loaded.
+     * Set the relationships that should be eager loaded.
      *
      * @param  array<array-key, array|(\Closure(\Illuminate\Database\Eloquent\Relations\Relation<*,*,*>): mixed)|string>|string  $relations
      * @param  (\Closure(\Illuminate\Database\Eloquent\Relations\Relation<*,*,*>): mixed)|string|null  $callback
@@ -1711,8 +1603,6 @@ class Builder implements BuilderContract
      */
     public function newModelInstance($attributes = [])
     {
-        $attributes = array_merge($this->pendingAttributes, $attributes);
-
         return $this->model->newInstance($attributes)->setConnection(
             $this->query->getConnection()->getName()
         );
@@ -1840,8 +1730,8 @@ class Builder implements BuilderContract
         return [explode(':', $name)[0], static function ($query) use ($name) {
             $query->select(array_map(static function ($column) use ($query) {
                 return $query instanceof BelongsToMany
-                    ? $query->getRelated()->qualifyColumn($column)
-                    : $column;
+                        ? $query->getRelated()->qualifyColumn($column)
+                        : $column;
             }, explode(',', explode(':', $name)[1])));
         }];
     }
@@ -1871,33 +1761,6 @@ class Builder implements BuilderContract
         }
 
         return $results;
-    }
-
-    /**
-     * Specify attributes that should be added to any new models created by this builder.
-     *
-     * The given key / value pairs will also be added as where conditions to the query.
-     *
-     * @param  \Illuminate\Contracts\Database\Query\Expression|array|string  $attributes
-     * @param  mixed  $value
-     * @param  bool  $asConditions
-     * @return $this
-     */
-    public function withAttributes(Expression|array|string $attributes, $value = null, $asConditions = true)
-    {
-        if (! is_array($attributes)) {
-            $attributes = [$attributes => $value];
-        }
-
-        if ($asConditions) {
-            foreach ($attributes as $column => $value) {
-                $this->where($this->qualifyColumn($column), $value);
-            }
-        }
-
-        $this->pendingAttributes = array_merge($this->pendingAttributes, $attributes);
-
-        return $this;
     }
 
     /**
@@ -2017,26 +1880,6 @@ class Builder implements BuilderContract
     public function withoutEagerLoads()
     {
         return $this->setEagerLoads([]);
-    }
-
-    /**
-     * Get the "limit" value from the query or null if it's not set.
-     *
-     * @return mixed
-     */
-    public function getLimit()
-    {
-        return $this->query->getLimit();
-    }
-
-    /**
-     * Get the "offset" value from the query or null if it's not set.
-     *
-     * @return mixed
-     */
-    public function getOffset()
-    {
-        return $this->query->getOffset();
     }
 
     /**
@@ -2274,19 +2117,6 @@ class Builder implements BuilderContract
     }
 
     /**
-     * Register a closure to be invoked on a clone.
-     *
-     * @param  \Closure  $callback
-     * @return $this
-     */
-    public function onClone(Closure $callback)
-    {
-        $this->onCloneCallbacks[] = $callback;
-
-        return $this;
-    }
-
-    /**
      * Force a clone of the underlying query builder when cloning.
      *
      * @return void
@@ -2294,9 +2124,5 @@ class Builder implements BuilderContract
     public function __clone()
     {
         $this->query = clone $this->query;
-
-        foreach ($this->onCloneCallbacks as $onCloneCallback) {
-            $onCloneCallback($this);
-        }
     }
 }

@@ -18,7 +18,6 @@
  * - Orxan
  * - Şəhriyar İmanov
  * - Baran Şengül
- * - Novruz Rahimov
  */
 return [
     'year' => ':count il',
@@ -35,13 +34,13 @@ return [
     'd' => ':count g.',
     'hour' => ':count saat',
     'a_hour' => '{1}bir saat|]1,Inf[:count saat',
-    'h' => ':count s.',
-    'minute' => ':count dəqiqə',
+    'h' => ':count saat',
+    'minute' => ':count d.',
     'a_minute' => '{1}bir dəqiqə|]1,Inf[:count dəqiqə',
-    'min' => ':count d.',
-    'second' => ':count saniyə',
+    'min' => ':count dəqiqə',
+    'second' => ':count san.',
     'a_second' => '{1}birneçə saniyə|]1,Inf[:count saniyə',
-    's' => ':count san.',
+    's' => ':count saniyə',
     'ago' => ':time əvvəl',
     'from_now' => ':time sonra',
     'after' => ':time sonra',

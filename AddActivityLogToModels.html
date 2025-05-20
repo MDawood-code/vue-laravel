@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity Log Trait Installer Command</title>
+    <style>
+        :root {
+            --primary-color: #4a5568;
+            --secondary-color: #2d3748;
+            --accent-color: #3182ce;
+            --background-color: #f7fafc;
+            --code-background: #2d3748;
+            --code-color: #e2e8f0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: var(--primary-color);
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: var(--background-color);
+        }
+
+        h1, h2, h3, h4 {
+            color: var(--secondary-color);
+            margin-top: 2rem;
+            border-bottom: 2px solid #edf2f7;
+            padding-bottom: 0.5rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            text-align: center;
+            border-bottom: none;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+        }
+
+        h3 {
+            font-size: 1.4rem;
+            border-bottom: 1px solid #edf2f7;
+        }
+
+        p {
+            margin: 1rem 0;
+        }
+
+        code {
+            font-family: 'Fira Code', 'Courier New', Courier, monospace;
+            background: var(--code-background);
+            color: var(--code-color);
+            padding: 0.2rem 0.4rem;
+            border-radius: 0.25rem;
+            font-size: 0.9em;
+        }
+
+        pre {
+            background: var(--code-background);
+            color: var(--code-color);
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            border-radius: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            background: white;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #f7fafc;
+            font-weight: 600;
+            color: var(--secondary-color);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin: 2rem 0;
+        }
+
+        .note {
+            background: #ebf8ff;
+            border-left: 4px solid var(--accent-color);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        .warning {
+            background: #fffaf0;
+            border-left: 4px solid #ed8936;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0.25rem;
+        }
+
+        ul, ol {
+            padding-left: 1.5rem;
+        }
+
+        li {
+            margin: 0.5rem 0;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Activity Log Trait Installer Command</h1>
+
+        <p>A Laravel Artisan command that automatically adds Spatie's Activity Log trait to Laravel models.</p>
+
+        <h2>Command Overview</h2>
+        <pre><code>php artisan models:add-activity-log [options] [models]</code></pre>
+
+        <h2>Description</h2>
+        <p>This command automates the process of adding activity logging capabilities to Laravel models by:</p>
+        <ul>
+            <li>Adding the <code>LogsActivity</code> trait</li>
+            <li>Implementing the <code>LogOptions</code> interface</li>
+            <li>Adding the <code>getActivitylogOptions()</code> method</li>
+            <li>Managing file backups</li>
+            <li>Providing safe dry-run capabilities</li>
+        </ul>
+
+        <h2>Arguments</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Argument</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>models</code></td>
+                    <td>Optional. Specific model names to process (without .php extension)</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>Options</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Option</th>
+                    <th>Description</th>
+                    <th>Default</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>--dry-run</code></td>
+                    <td>Show what would be changed without making changes</td>
+                    <td><code>false</code></td>
+                </tr>
+                <tr>
+                    <td><code>--backup</code></td>
+                    <td>Create backups before modifying files</td>
+                    <td><code>false</code></td>
+                </tr>
+                <tr>
+                    <td><code>--restore</code></td>
+                    <td>Restore from the most recent backup</td>
+                    <td><code>false</code></td>
+                </tr>
+                <tr>
+                    <td><code>--restore-from</code></td>
+                    <td>Restore from a specific backup timestamp</td>
+                    <td><code>null</code></td>
+                </tr>
+                <tr>
+                    <td><code>--keep-backups</code></td>
+                    <td>Number of backups to keep</td>
+                    <td><code>5</code></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h2>Usage Examples</h2>
+        <pre><code>
+# Add activity log to all models
+php artisan models:add-activity-log
+
+# Add activity log to specific models
+php artisan models:add-activity-log User Post Comment
+
+# Preview changes without modifying files
+php artisan models:add-activity-log --dry-run
+
+# Add activity log with backup
+php artisan models:add-activity-log --backup
+
+# Restore from most recent backup
+php artisan models:add-activity-log --restore
+
+# Restore from specific backup
+php artisan models:add-activity-log --restore-from=2024-03-20_123456
+
+# Limit backup history
+php artisan models:add-activity-log --backup --keep-backups=3</code></pre>
+
+        <h2>Features</h2>
+
+        <h3>Model Modifications</h3>
+        <p>The command adds the following to your models:</p>
+
+        <h4>1. Required Use Statements</h4>
+        <pre><code>use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;</code></pre>
+
+        <h4>2. Trait Implementation</h4>
+        <pre><code>use LogsActivity;</code></pre>
+
+        <h4>3. Activity Log Configuration Method</h4>
+        <pre><code>public function getActivitylogOptions(): LogOptions
+{
+    return LogOptions::defaults()
+        ->logOnly(['*'])
+        ->logOnlyDirty();
+}</code></pre>
+
+        <h3>Code Analysis and Modification</h3>
+        <ul>
+            <li>Uses PHP Parser for safe code modification</li>
+            <li>Maintains existing code formatting</li>
+            <li>Preserves comments and docblocks</li>
+            <li>Handles different trait declaration styles</li>
+            <li>Adds proper spacing and line breaks</li>
+        </ul>
+
+        <h3>Backup Management</h3>
+        <ul>
+            <li>Creates timestamped backups in <code>storage/app/backups/models/YYYY-MM-DD_HHMMSS/</code></li>
+            <li>Maintains configurable number of backup versions</li>
+            <li>Automatic cleanup of old backups</li>
+            <li>Interactive backup restoration</li>
+            <li>Backup rotation with configurable limit</li>
+        </ul>
+
+        <h3>Safety Features</h3>
+        <div class="container">
+            <h4>1. Input Validation</h4>
+            <ul>
+                <li>Validates model names (alphanumeric and underscores only)</li>
+                <li>Prevents directory traversal attempts</li>
+                <li>Validates backup timestamps</li>
+                <li>Validates numeric inputs</li>
+            </ul>
+
+            <h4>2. Dry Run Mode</h4>
+            <ul>
+                <li>Shows detailed diff of proposed changes</li>
+                <li>Color-coded output for better readability</li>
+                <li>No files are modified</li>
+                <li>Safe for testing in production</li>
+            </ul>
+
+            <h4>3. Backup System</h4>
+            <ul>
+                <li>Automatic backups before modifications</li>
+                <li>Multiple backup versions</li>
+                <li>Easy restoration process</li>
+                <li>Configurable backup retention</li>
+            </ul>
+        </div>
+
+        <h2>Error Handling</h2>
+        <div class="container">
+            <p>The command handles various error scenarios:</p>
+            <ul>
+                <li>Invalid model names</li>
+                <li>Non-existent models</li>
+                <li>File permission issues</li>
+                <li>Parse errors in PHP files</li>
+                <li>Backup/restore issues</li>
+                <li>Directory access problems</li>
+            </ul>
+        </div>
+
+        <h2>Output Examples</h2>
+
+        <h3>Dry Run Output</h3>
+        <pre><code>DRY RUN MODE - No files will be modified
+
+Changes for: User.php
+@@ file @@
+ namespace App\Models;
++use Spatie\Activitylog\Traits\LogsActivity;
++use Spatie\Activitylog\LogOptions;
+
+ class User extends Authenticatable
+ {
++    use LogsActivity;
++
++    public function getActivitylogOptions(): LogOptions
++    {
++        return LogOptions::defaults()
++            ->logOnly(['*'])
++            ->logOnlyDirty();
++    }</code></pre>
+
+        <h3>Backup Management</h3>
+        <pre><code>Available Backups:
+[1] 2024-03-20 15:30:45 (2 hours ago)
+[2] 2024-03-20 14:15:22 (3 hours ago)
+[3] 2024-03-20 10:45:11 (7 hours ago)
+
+Select backup to restore (number):</code></pre>
+
+        <h3>Summary Output</h3>
+        <pre><code>Summary:
+Total files processed: 3
+Files modified: 2
+Backup files created: 2
+Files failed: 0</code></pre>
+
+        <h2>Requirements</h2>
+        <div class="container">
+            <ul>
+                <li>Laravel 8.0+</li>
+                <li>Spatie Laravel Activity Log package installed</li>
+                <li>PHP 8.0+</li>
+                <li>Write permissions on models directory</li>
+                <li>Write permissions on backup directory</li>
+            </ul>
+        </div>
+
+        <h2>Best Practices</h2>
+        <div class="container">
+            <ol>
+                <li>Always use <code>--dry-run</code> first to preview changes</li>
+                <li>Create backups with <code>--backup</code> when modifying files</li>
+                <li>Keep reasonable number of backups (3-5 recommended)</li>
+                <li>Test on development before running on production</li>
+                <li>Verify changes after application</li>
+            </ol>
+        </div>
+
+        <div class="note">
+            <strong>Note:</strong> The command uses PHP Parser to safely modify your code while preserving formatting and comments.
+        </div>
+
+        <div class="warning">
+            <strong>Warning:</strong> Always backup your files before running this command in production.
+        </div>
+    </div>
+</body>
+</html>

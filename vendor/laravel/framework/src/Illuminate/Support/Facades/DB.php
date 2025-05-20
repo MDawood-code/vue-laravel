@@ -5,7 +5,6 @@ namespace Illuminate\Support\Facades;
 use Illuminate\Database\Console\Migrations\FreshCommand;
 use Illuminate\Database\Console\Migrations\RefreshCommand;
 use Illuminate\Database\Console\Migrations\ResetCommand;
-use Illuminate\Database\Console\Migrations\RollbackCommand;
 use Illuminate\Database\Console\WipeCommand;
 
 /**
@@ -104,7 +103,8 @@ use Illuminate\Database\Console\WipeCommand;
  * @method static \Illuminate\Database\Connection setReadWriteType(string|null $readWriteType)
  * @method static string getTablePrefix()
  * @method static \Illuminate\Database\Connection setTablePrefix(string $prefix)
- * @method static mixed withoutTablePrefix(\Closure $callback)
+ * @method static \Illuminate\Database\Grammar withTablePrefix(\Illuminate\Database\Grammar $grammar)
+ * @method static void withoutTablePrefix(\Closure $callback)
  * @method static string getServerVersion()
  * @method static void resolverFor(string $driver, \Closure $callback)
  * @method static \Closure|null getResolver(string $driver)
@@ -122,7 +122,7 @@ class DB extends Facade
     /**
      * Indicate if destructive Artisan commands should be prohibited.
      *
-     * Prohibits: db:wipe, migrate:fresh, migrate:refresh, migrate:reset, and migrate:rollback
+     * Prohibits: db:wipe, migrate:fresh, migrate:refresh, and migrate:reset
      *
      * @param  bool  $prohibit
      * @return void
@@ -132,7 +132,6 @@ class DB extends Facade
         FreshCommand::prohibit($prohibit);
         RefreshCommand::prohibit($prohibit);
         ResetCommand::prohibit($prohibit);
-        RollbackCommand::prohibit($prohibit);
         WipeCommand::prohibit($prohibit);
     }
 

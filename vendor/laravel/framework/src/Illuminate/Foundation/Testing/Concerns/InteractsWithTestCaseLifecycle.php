@@ -5,9 +5,7 @@ namespace Illuminate\Foundation\Testing\Concerns;
 use Carbon\CarbonImmutable;
 use Illuminate\Console\Application as Artisan;
 use Illuminate\Cookie\Middleware\EncryptCookies;
-use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Migrations\Migrator;
 use Illuminate\Foundation\Bootstrap\HandleExceptions;
 use Illuminate\Foundation\Bootstrap\RegisterProviders;
 use Illuminate\Foundation\Console\AboutCommand;
@@ -23,11 +21,9 @@ use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Illuminate\Http\Middleware\TrustHosts;
 use Illuminate\Http\Middleware\TrustProxies;
-use Illuminate\Mail\Markdown;
 use Illuminate\Queue\Console\WorkCommand;
 use Illuminate\Queue\Queue;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\EncodedHtmlString;
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\Facades\ParallelTesting;
 use Illuminate\Support\Once;
@@ -172,12 +168,8 @@ trait InteractsWithTestCaseLifecycle
         Component::forgetComponentsResolver();
         Component::forgetFactory();
         ConvertEmptyStringsToNull::flushState();
-        Factory::flushState();
-        EncodedHtmlString::flushState();
         EncryptCookies::flushState();
         HandleExceptions::flushState();
-        Markdown::flushState();
-        Migrator::withoutMigrations([]);
         Once::flush();
         PreventRequestsDuringMaintenance::flushState();
         Queue::createPayloadUsing(null);
@@ -249,12 +241,10 @@ trait InteractsWithTestCaseLifecycle
      */
     public static function tearDownAfterClassUsingTestCase()
     {
-        if (class_exists(PHPUnitRegistry::class)) {
-            (function () {
-                $this->classDocBlocks = [];
-                $this->methodDocBlocks = [];
-            })->call(PHPUnitRegistry::getInstance());
-        }
+        (function () {
+            $this->classDocBlocks = [];
+            $this->methodDocBlocks = [];
+        })->call(PHPUnitRegistry::getInstance());
     }
 
     /**

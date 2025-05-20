@@ -123,7 +123,7 @@ class Grammar extends BaseGrammar
      * Compile an aggregated select clause.
      *
      * @param  \Illuminate\Database\Query\Builder  $query
-     * @param  array{function: string, columns: array<\Illuminate\Contracts\Database\Query\Expression|string>}  $aggregate
+     * @param  array  $aggregate
      * @return string
      */
     protected function compileAggregate(Builder $query, $aggregate)
@@ -1203,7 +1203,7 @@ class Grammar extends BaseGrammar
      *
      * @param  \Illuminate\Database\Query\Builder  $query
      * @param  array  $values
-     * @param  string|null  $sequence
+     * @param  string  $sequence
      * @return string
      */
     public function compileInsertGetId(Builder $query, $values, $sequence)

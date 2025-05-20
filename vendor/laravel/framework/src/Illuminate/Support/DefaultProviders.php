@@ -13,6 +13,8 @@ class DefaultProviders
 
     /**
      * Create a new default provider collection.
+     *
+     * @return void
      */
     public function __construct(?array $providers = null)
     {
@@ -84,9 +86,9 @@ class DefaultProviders
     public function except(array $providers)
     {
         return new static((new Collection($this->providers))
-            ->reject(fn ($p) => in_array($p, $providers))
-            ->values()
-            ->toArray());
+                ->reject(fn ($p) => in_array($p, $providers))
+                ->values()
+                ->toArray());
     }
 
     /**

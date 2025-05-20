@@ -37,6 +37,7 @@ class Headers
      * @param  string|null  $messageId
      * @param  array  $references
      * @param  array  $text
+     * @return void
      *
      * @named-arguments-supported
      */
@@ -94,7 +95,7 @@ class Headers
     public function referencesString(): string
     {
         return (new Collection($this->references))
-            ->map(fn ($messageId) => Str::of($messageId)->start('<')->finish('>')->value())
+            ->map(fn ($messageId) => Str::wrap($messageId, '<', '>'))
             ->implode(' ');
     }
 }

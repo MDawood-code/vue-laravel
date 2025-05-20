@@ -76,6 +76,7 @@ class DatabaseStore implements LockProvider, Store
      * @param  string  $prefix
      * @param  string  $lockTable
      * @param  array  $lockLottery
+     * @return void
      */
     public function __construct(
         ConnectionInterface $connection,
@@ -262,7 +263,7 @@ class DatabaseStore implements LockProvider, Store
             $prefixed = $this->prefix.$key;
 
             $cache = $this->table()->where('key', $prefixed)
-                ->lockForUpdate()->first();
+                        ->lockForUpdate()->first();
 
             // If there is no value in the cache, we will return false here. Otherwise the
             // value will be decrypted and we will proceed with this function to either

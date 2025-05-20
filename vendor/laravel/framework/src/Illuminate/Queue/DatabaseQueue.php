@@ -51,6 +51,7 @@ class DatabaseQueue extends Queue implements QueueContract, ClearableQueue
      * @param  string  $default
      * @param  int  $retryAfter
      * @param  bool  $dispatchAfterCommit
+     * @return void
      */
     public function __construct(
         Connection $database,
@@ -75,8 +76,8 @@ class DatabaseQueue extends Queue implements QueueContract, ClearableQueue
     public function size($queue = null)
     {
         return $this->database->table($this->table)
-            ->where('queue', $this->getQueue($queue))
-            ->count();
+                    ->where('queue', $this->getQueue($queue))
+                    ->count();
     }
 
     /**
@@ -126,7 +127,7 @@ class DatabaseQueue extends Queue implements QueueContract, ClearableQueue
     {
         return $this->enqueueUsing(
             $job,
-            $this->createPayload($job, $this->getQueue($queue), $data, $delay),
+            $this->createPayload($job, $this->getQueue($queue), $data),
             $queue,
             $delay,
             function ($payload, $queue, $delay) {
@@ -238,14 +239,14 @@ class DatabaseQueue extends Queue implements QueueContract, ClearableQueue
     protected function getNextAvailableJob($queue)
     {
         $job = $this->database->table($this->table)
-            ->lock($this->getLockForPopping())
-            ->where('queue', $this->getQueue($queue))
-            ->where(function ($query) {
-                $this->isAvailable($query);
-                $this->isReservedButExpired($query);
-            })
-            ->orderBy('id', 'asc')
-            ->first();
+                    ->lock($this->getLockForPopping())
+                    ->where('queue', $this->getQueue($queue))
+                    ->where(function ($query) {
+                        $this->isAvailable($query);
+                        $this->isReservedButExpired($query);
+                    })
+                    ->orderBy('id', 'asc')
+                    ->first();
 
         return $job ? new DatabaseJobRecord((object) $job) : null;
     }
@@ -292,7 +293,7 @@ class DatabaseQueue extends Queue implements QueueContract, ClearableQueue
     {
         $query->where(function ($query) {
             $query->whereNull('reserved_at')
-                ->where('available_at', '<=', $this->currentTime());
+                  ->where('available_at', '<=', $this->currentTime());
         });
     }
 
@@ -391,8 +392,8 @@ class DatabaseQueue extends Queue implements QueueContract, ClearableQueue
     public function clear($queue)
     {
         return $this->database->table($this->table)
-            ->where('queue', $this->getQueue($queue))
-            ->delete();
+                    ->where('queue', $this->getQueue($queue))
+                    ->delete();
     }
 
     /**

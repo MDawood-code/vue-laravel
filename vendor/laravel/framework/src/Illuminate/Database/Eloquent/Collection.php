@@ -249,35 +249,6 @@ class Collection extends BaseCollection implements QueueableCollection
     }
 
     /**
-     * Load a relationship path for models of the given type if it is not already eager loaded.
-     *
-     * @param  array<int, <string, class-string>>  $tuples
-     * @return void
-     */
-    public function loadMissingRelationshipChain(array $tuples)
-    {
-        [$relation, $class] = array_shift($tuples);
-
-        $this->filter(function ($model) use ($relation, $class) {
-            return ! is_null($model) &&
-                ! $model->relationLoaded($relation) &&
-                $model::class === $class;
-        })->load($relation);
-
-        if (empty($tuples)) {
-            return;
-        }
-
-        $models = $this->pluck($relation)->whereNotNull();
-
-        if ($models->first() instanceof BaseCollection) {
-            $models = $models->collapse();
-        }
-
-        (new static($models))->loadMissingRelationshipChain($tuples);
-    }
-
-    /**
      * Load a relationship path if it is not already eager loaded.
      *
      * @param  \Illuminate\Database\Eloquent\Collection<int, TModel>  $models
@@ -362,19 +333,6 @@ class Collection extends BaseCollection implements QueueableCollection
         }
 
         return parent::contains(fn ($model) => $model->getKey() == $key);
-    }
-
-    /**
-     * Determine if a key does not exist in the collection.
-     *
-     * @param  (callable(TModel, TKey): bool)|TModel|string|int  $key
-     * @param  mixed  $operator
-     * @param  mixed  $value
-     * @return bool
-     */
-    public function doesntContain($key, $operator = null, $value = null)
-    {
-        return ! $this->contains(...func_get_args());
     }
 
     /**
@@ -702,19 +660,6 @@ class Collection extends BaseCollection implements QueueableCollection
     }
 
     /**
-     * Partition the collection into two arrays using the given callback or key.
-     *
-     * @param  (callable(TModel, TKey): bool)|TModel|string  $key
-     * @param  TModel|string|null  $operator
-     * @param  TModel|null  $value
-     * @return \Illuminate\Support\Collection<int<0, 1>, static<TKey, TModel>>
-     */
-    public function partition($key, $operator = null, $value = null)
-    {
-        return parent::partition(...func_get_args())->toBase();
-    }
-
-    /**
      * Get an array with the values of a given key.
      *
      * @param  string|array<array-key, string>|null  $value
@@ -751,24 +696,6 @@ class Collection extends BaseCollection implements QueueableCollection
     }
 
     /**
-     * Enable relationship autoloading for all models in this collection.
-     *
-     * @return $this
-     */
-    public function withRelationshipAutoloading()
-    {
-        $callback = fn ($tuples) => $this->loadMissingRelationshipChain($tuples);
-
-        foreach ($this as $model) {
-            if (! $model->hasRelationAutoloadCallback()) {
-                $model->autoloadRelationsUsing($callback, $this);
-            }
-        }
-
-        return $this;
-    }
-
-    /**
      * Get the type of the entities being queued.
      *
      * @return string|null
@@ -801,8 +728,8 @@ class Collection extends BaseCollection implements QueueableCollection
     protected function getQueueableModelClass($model)
     {
         return method_exists($model, 'getQueueableClassName')
-            ? $model->getQueueableClassName()
-            : get_class($model);
+                ? $model->getQueueableClassName()
+                : get_class($model);
     }
 
     /**
@@ -817,8 +744,8 @@ class Collection extends BaseCollection implements QueueableCollection
         }
 
         return $this->first() instanceof QueueableEntity
-            ? $this->map->getQueueableId()->all()
-            : $this->modelKeys();
+                    ? $this->map->getQueueableId()->all()
+                    : $this->modelKeys();
     }
 
     /**
@@ -884,7 +811,7 @@ class Collection extends BaseCollection implements QueueableCollection
 
         $class = get_class($model);
 
-        if ($this->reject(fn ($model) => $model instanceof $class)->isNotEmpty()) {
+        if ($this->filter(fn ($model) => ! $model instanceof $class)->isNotEmpty()) {
             throw new LogicException('Unable to create query for collection with mixed types.');
         }
 

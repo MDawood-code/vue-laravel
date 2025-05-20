@@ -42,6 +42,7 @@ class FileLoader implements Loader
      *
      * @param  \Illuminate\Filesystem\Filesystem  $files
      * @param  array|string  $path
+     * @return void
      */
     public function __construct(Filesystem $files, array|string $path)
     {
@@ -102,15 +103,15 @@ class FileLoader implements Loader
     protected function loadNamespaceOverrides(array $lines, $locale, $group, $namespace)
     {
         return (new Collection($this->paths))
-            ->reduce(function ($output, $path) use ($locale, $group, $namespace) {
+            ->reduce(function ($output, $path) use ($lines, $locale, $group, $namespace) {
                 $file = "{$path}/vendor/{$namespace}/{$locale}/{$group}.php";
 
                 if ($this->files->exists($file)) {
-                    $output = array_replace_recursive($output, $this->files->getRequire($file));
+                    $lines = array_replace_recursive($lines, $this->files->getRequire($file));
                 }
 
-                return $output;
-            }, $lines);
+                return $lines;
+            }, []);
     }
 
     /**
@@ -182,17 +183,6 @@ class FileLoader implements Loader
     }
 
     /**
-     * Add a new path to the loader.
-     *
-     * @param  string  $path
-     * @return void
-     */
-    public function addPath($path)
-    {
-        $this->paths[] = $path;
-    }
-
-    /**
      * Add a new JSON path to the loader.
      *
      * @param  string  $path
@@ -201,16 +191,6 @@ class FileLoader implements Loader
     public function addJsonPath($path)
     {
         $this->jsonPaths[] = $path;
-    }
-
-    /**
-     * Get an array of all the registered paths to translation files.
-     *
-     * @return array
-     */
-    public function paths()
-    {
-        return $this->paths;
     }
 
     /**

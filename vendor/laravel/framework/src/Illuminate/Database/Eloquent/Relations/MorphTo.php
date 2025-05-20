@@ -83,6 +83,7 @@ class MorphTo extends BelongsTo
      * @param  string|null  $ownerKey
      * @param  string  $type
      * @param  string  $relation
+     * @return void
      */
     public function __construct(Builder $query, Model $parent, $foreignKey, $ownerKey, $type, $relation)
     {
@@ -145,14 +146,14 @@ class MorphTo extends BelongsTo
         $ownerKey = $this->ownerKey ?? $instance->getKeyName();
 
         $query = $this->replayMacros($instance->newQuery())
-            ->mergeConstraintsFrom($this->getQuery())
-            ->with(array_merge(
-                $this->getQuery()->getEagerLoads(),
-                (array) ($this->morphableEagerLoads[get_class($instance)] ?? [])
-            ))
-            ->withCount(
-                (array) ($this->morphableEagerLoadCounts[get_class($instance)] ?? [])
-            );
+                            ->mergeConstraintsFrom($this->getQuery())
+                            ->with(array_merge(
+                                $this->getQuery()->getEagerLoads(),
+                                (array) ($this->morphableEagerLoads[get_class($instance)] ?? [])
+                            ))
+                            ->withCount(
+                                (array) ($this->morphableEagerLoadCounts[get_class($instance)] ?? [])
+                            );
 
         if ($callback = ($this->morphableConstraints[get_class($instance)] ?? null)) {
             $callback($query);
@@ -175,10 +176,10 @@ class MorphTo extends BelongsTo
     protected function gatherKeysByType($type, $keyType)
     {
         return $keyType !== 'string'
-            ? array_keys($this->dictionary[$type])
-            : array_map(function ($modelId) {
-                return (string) $modelId;
-            }, array_filter(array_keys($this->dictionary[$type])));
+                    ? array_keys($this->dictionary[$type])
+                    : array_map(function ($modelId) {
+                        return (string) $modelId;
+                    }, array_filter(array_keys($this->dictionary[$type])));
     }
 
     /**
@@ -236,8 +237,8 @@ class MorphTo extends BelongsTo
     {
         if ($model instanceof Model) {
             $foreignKey = $this->ownerKey && $model->{$this->ownerKey}
-                ? $this->ownerKey
-                : $model->getKeyName();
+                            ? $this->ownerKey
+                            : $model->getKeyName();
         }
 
         $this->parent->setAttribute(

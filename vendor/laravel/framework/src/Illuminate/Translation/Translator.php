@@ -84,6 +84,7 @@ class Translator extends NamespacedItemResolver implements TranslatorContract
      *
      * @param  \Illuminate\Contracts\Translation\Loader  $loader
      * @param  string  $locale
+     * @return void
      */
     public function __construct(Loader $loader, $locale)
     {
@@ -401,17 +402,6 @@ class Translator extends NamespacedItemResolver implements TranslatorContract
     public function addNamespace($namespace, $hint)
     {
         $this->loader->addNamespace($namespace, $hint);
-    }
-
-    /**
-     * Add a new path to the loader.
-     *
-     * @param  string  $path
-     * @return void
-     */
-    public function addPath($path)
-    {
-        $this->loader->addPath($path);
     }
 
     /**

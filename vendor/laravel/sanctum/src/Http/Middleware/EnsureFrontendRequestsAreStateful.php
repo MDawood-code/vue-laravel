@@ -5,7 +5,6 @@ namespace Laravel\Sanctum\Http\Middleware;
 use Illuminate\Routing\Pipeline;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
-use Laravel\Sanctum\Sanctum;
 
 class EnsureFrontendRequestsAreStateful
 {
@@ -84,9 +83,7 @@ class EnsureFrontendRequestsAreStateful
 
         $stateful = array_filter(config('sanctum.stateful', []));
 
-        return Str::is(Collection::make($stateful)->map(function ($uri) use ($request) {
-            $uri = $uri === Sanctum::$currentRequestHostPlaceholder ? $request->getHttpHost() : $uri;
-
+        return Str::is(Collection::make($stateful)->map(function ($uri) {
             return trim($uri).'/*';
         })->all(), $domain);
     }

@@ -2,7 +2,6 @@
 
 namespace Illuminate\Database\Migrations;
 
-use Closure;
 use Illuminate\Console\View\Components\BulletList;
 use Illuminate\Console\View\Components\Info;
 use Illuminate\Console\View\Components\Task;
@@ -52,13 +51,6 @@ class Migrator
     protected $resolver;
 
     /**
-     * The custom connection resolver callback.
-     *
-     * @var \Closure|null
-     */
-    protected static $connectionResolverCallback;
-
-    /**
      * The name of the default connection.
      *
      * @var string
@@ -87,19 +79,13 @@ class Migrator
     protected $output;
 
     /**
-     * The pending migrations to skip.
-     *
-     * @var list<string>
-     */
-    protected static $withoutMigrations = [];
-
-    /**
      * Create a new migrator instance.
      *
      * @param  \Illuminate\Database\Migrations\MigrationRepositoryInterface  $repository
      * @param  \Illuminate\Database\ConnectionResolverInterface  $resolver
      * @param  \Illuminate\Filesystem\Filesystem  $files
      * @param  \Illuminate\Contracts\Events\Dispatcher|null  $dispatcher
+     * @return void
      */
     public function __construct(
         MigrationRepositoryInterface $repository,
@@ -148,25 +134,9 @@ class Migrator
      */
     protected function pendingMigrations($files, $ran)
     {
-        $migrationsToSkip = $this->migrationsToSkip();
-
         return (new Collection($files))
-            ->reject(fn ($file) => in_array($migrationName = $this->getMigrationName($file), $ran) ||
-                in_array($migrationName, $migrationsToSkip)
-            )
+            ->reject(fn ($file) => in_array($this->getMigrationName($file), $ran))
             ->values()
-            ->all();
-    }
-
-    /**
-     * Get list of pending migrations to skip.
-     *
-     * @return list<string>
-     */
-    protected function migrationsToSkip()
-    {
-        return (new Collection(self::$withoutMigrations))
-            ->map($this->getMigrationName(...))
             ->all();
     }
 
@@ -240,20 +210,12 @@ class Migrator
             return $this->pretendToRun($migration, 'up');
         }
 
-        $shouldRunMigration = $migration instanceof Migration
-            ? $migration->shouldRun()
-            : true;
+        $this->write(Task::class, $name, fn () => $this->runMigration($migration, 'up'));
 
-        if (! $shouldRunMigration) {
-            $this->write(Task::class, $name, fn () => MigrationResult::Skipped->value);
-        } else {
-            $this->write(Task::class, $name, fn () => $this->runMigration($migration, 'up'));
-
-            // Once we have run a migrations class, we will log that it was run in this
-            // repository so that we don't try to run it next time we do a migration
-            // in the application. A migration repository keeps the migrate order.
-            $this->repository->log($name, $batch);
-        }
+        // Once we have run a migrations class, we will log that it was run in this
+        // repository so that we don't try to run it next time we do a migration
+        // in the application. A migration repository keeps the migrate order.
+        $this->repository->log($name, $batch);
     }
 
     /**
@@ -444,8 +406,8 @@ class Migrator
 
         $this->getSchemaGrammar($connection)->supportsSchemaTransactions()
             && $migration->withinTransaction
-                ? $connection->transaction($callback)
-                : $callback();
+                    ? $connection->transaction($callback)
+                    : $callback();
     }
 
     /**
@@ -548,8 +510,8 @@ class Migrator
 
         if (is_object($migration)) {
             return method_exists($migration, '__construct')
-                ? $this->files->getRequire($path)
-                : clone $migration;
+                    ? $this->files->getRequire($path)
+                    : clone $migration;
         }
 
         return new $class;
@@ -629,17 +591,6 @@ class Migrator
     }
 
     /**
-     * Set the pending migrations to skip.
-     *
-     * @param  list<string>  $migrations
-     * @return void
-     */
-    public static function withoutMigrations(array $migrations)
-    {
-        static::$withoutMigrations = $migrations;
-    }
-
-    /**
      * Get the default connection name.
      *
      * @return string
@@ -690,26 +641,7 @@ class Migrator
      */
     public function resolveConnection($connection)
     {
-        if (static::$connectionResolverCallback) {
-            return call_user_func(
-                static::$connectionResolverCallback,
-                $this->resolver,
-                $connection ?: $this->connection
-            );
-        } else {
-            return $this->resolver->connection($connection ?: $this->connection);
-        }
-    }
-
-    /**
-     * Set a connection resolver callback.
-     *
-     * @param  \Closure  $callback
-     * @return void
-     */
-    public static function resolveConnectionsUsing(Closure $callback)
-    {
-        static::$connectionResolverCallback = $callback;
+        return $this->resolver->connection($connection ?: $this->connection);
     }
 
     /**

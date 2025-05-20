@@ -58,10 +58,6 @@ class ThrottlesExceptionsWithRedis extends ThrottlesExceptions
                 report($throwable);
             }
 
-            if ($this->shouldDelete($throwable)) {
-                return $job->delete();
-            }
-
             $this->limiter->acquire();
 
             return $job->release($this->retryAfterMinutes * 60);

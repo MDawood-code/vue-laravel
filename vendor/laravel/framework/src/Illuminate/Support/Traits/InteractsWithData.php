@@ -221,7 +221,7 @@ trait InteractsWithData
     }
 
     /**
-     * Retrieve data from the instance as a Stringable instance.
+     * Retrieve data from the instnce as a Stringable instance.
      *
      * @param  string  $key
      * @param  mixed  $default
@@ -338,10 +338,9 @@ trait InteractsWithData
             return [];
         }
 
-        return $this->collect($key)
-            ->map(fn ($value) => $enumClass::tryFrom($value))
-            ->filter()
-            ->all();
+        return $this->collect($key)->map(function ($value) use ($enumClass) {
+            return $enumClass::tryFrom($value);
+        })->filter()->all();
     }
 
     /**

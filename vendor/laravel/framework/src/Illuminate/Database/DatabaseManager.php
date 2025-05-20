@@ -69,6 +69,7 @@ class DatabaseManager implements ConnectionResolverInterface
      *
      * @param  \Illuminate\Contracts\Foundation\Application  $app
      * @param  \Illuminate\Database\Connectors\ConnectionFactory  $factory
+     * @return void
      */
     public function __construct($app, ConnectionFactory $factory)
     {
@@ -176,8 +177,7 @@ class DatabaseManager implements ConnectionResolverInterface
         $name = $name ?: $this->getDefaultConnection();
 
         return Str::endsWith($name, ['::read', '::write'])
-            ? explode('::', $name, 2)
-            : [$name, null];
+                            ? explode('::', $name, 2) : [$name, null];
     }
 
     /**
@@ -228,7 +228,7 @@ class DatabaseManager implements ConnectionResolverInterface
         }
 
         return (new ConfigurationUrlParser)
-            ->parseConfiguration($config);
+                    ->parseConfiguration($config);
     }
 
     /**
@@ -374,8 +374,8 @@ class DatabaseManager implements ConnectionResolverInterface
         );
 
         return $this->connections[$name]
-            ->setPdo($fresh->getRawPdo())
-            ->setReadPdo($fresh->getRawReadPdo());
+                    ->setPdo($fresh->getRawPdo())
+                    ->setReadPdo($fresh->getRawReadPdo());
     }
 
     /**

@@ -38,6 +38,7 @@ class DynamoDbFailedJobProvider implements FailedJobProviderInterface
      * @param  \Aws\DynamoDb\DynamoDbClient  $dynamo
      * @param  string  $applicationName
      * @param  string  $table
+     * @return void
      */
     public function __construct(DynamoDbClient $dynamo, $applicationName, $table)
     {
@@ -71,7 +72,7 @@ class DynamoDbFailedJobProvider implements FailedJobProviderInterface
                 'payload' => ['S' => $payload],
                 'exception' => ['S' => (string) $exception],
                 'failed_at' => ['N' => (string) $failedAt->getTimestamp()],
-                'expires_at' => ['N' => (string) $failedAt->addDays(7)->getTimestamp()],
+                'expires_at' => ['N' => (string) $failedAt->addDays(3)->getTimestamp()],
             ],
         ]);
 

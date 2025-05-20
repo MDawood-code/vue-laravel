@@ -29,6 +29,7 @@ class Composer
      *
      * @param  \Illuminate\Filesystem\Filesystem  $files
      * @param  string|null  $workingPath
+     * @return void
      */
     public function __construct(Filesystem $files, $workingPath = null)
     {
@@ -44,7 +45,7 @@ class Composer
      *
      * @throw \RuntimeException
      */
-    public function hasPackage($package)
+    protected function hasPackage($package)
     {
         $composer = json_decode(file_get_contents($this->findComposerFile()), true);
 
@@ -68,9 +69,9 @@ class Composer
             'require',
             ...$packages,
         ]))
-            ->when($dev, function ($command) {
-                $command->push('--dev');
-            })->all();
+        ->when($dev, function ($command) {
+            $command->push('--dev');
+        })->all();
 
         return 0 === $this->getProcess($command, ['COMPOSER_MEMORY_LIMIT' => '-1'])
             ->run(
@@ -97,9 +98,9 @@ class Composer
             'remove',
             ...$packages,
         ]))
-            ->when($dev, function ($command) {
-                $command->push('--dev');
-            })->all();
+        ->when($dev, function ($command) {
+            $command->push('--dev');
+        })->all();
 
         return 0 === $this->getProcess($command, ['COMPOSER_MEMORY_LIMIT' => '-1'])
             ->run(

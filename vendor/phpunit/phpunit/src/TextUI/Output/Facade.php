@@ -77,9 +77,9 @@ final class Facade
     }
 
     /**
-     * @param ?array<string, TestResultCollection> $testDoxResult
+     * @psalm-param ?array<string, TestResultCollection> $testDoxResult
      */
-    public static function printResult(TestResult $result, ?array $testDoxResult, Duration $duration, bool $stackTraceForDeprecations): void
+    public static function printResult(TestResult $result, ?array $testDoxResult, Duration $duration): void
     {
         assert(self::$printer !== null);
 
@@ -92,11 +92,11 @@ final class Facade
         }
 
         if (self::$testDoxResultPrinter !== null && $testDoxResult !== null) {
-            self::$testDoxResultPrinter->print($result, $testDoxResult);
+            self::$testDoxResultPrinter->print($testDoxResult);
         }
 
         if (self::$defaultResultPrinter !== null) {
-            self::$defaultResultPrinter->print($result, $stackTraceForDeprecations);
+            self::$defaultResultPrinter->print($result);
         }
 
         if (self::$summaryPrinter !== null) {
@@ -206,16 +206,16 @@ final class Facade
                 self::$printer,
                 true,
                 true,
-                $configuration->displayDetailsOnPhpunitDeprecations() || $configuration->displayDetailsOnAllIssues(),
+                $configuration->displayDetailsOnPhpunitDeprecations(),
                 false,
                 false,
                 true,
                 false,
                 false,
-                $configuration->displayDetailsOnTestsThatTriggerDeprecations() || $configuration->displayDetailsOnAllIssues(),
-                $configuration->displayDetailsOnTestsThatTriggerErrors() || $configuration->displayDetailsOnAllIssues(),
-                $configuration->displayDetailsOnTestsThatTriggerNotices() || $configuration->displayDetailsOnAllIssues(),
-                $configuration->displayDetailsOnTestsThatTriggerWarnings() || $configuration->displayDetailsOnAllIssues(),
+                $configuration->displayDetailsOnTestsThatTriggerDeprecations(),
+                $configuration->displayDetailsOnTestsThatTriggerErrors(),
+                $configuration->displayDetailsOnTestsThatTriggerNotices(),
+                $configuration->displayDetailsOnTestsThatTriggerWarnings(),
                 $configuration->reverseDefectList(),
             );
         }
@@ -224,8 +224,6 @@ final class Facade
             self::$testDoxResultPrinter = new TestDoxResultPrinter(
                 self::$printer,
                 $configuration->colors(),
-                $configuration->columns(),
-                $configuration->testDoxOutputWithSummary(),
             );
         }
 
@@ -241,16 +239,16 @@ final class Facade
             self::$printer,
             true,
             true,
-            $configuration->displayDetailsOnPhpunitDeprecations() || $configuration->displayDetailsOnAllIssues(),
+            $configuration->displayDetailsOnPhpunitDeprecations(),
             true,
             true,
             true,
-            $configuration->displayDetailsOnIncompleteTests() || $configuration->displayDetailsOnAllIssues(),
-            $configuration->displayDetailsOnSkippedTests() || $configuration->displayDetailsOnAllIssues(),
-            $configuration->displayDetailsOnTestsThatTriggerDeprecations() || $configuration->displayDetailsOnAllIssues(),
-            $configuration->displayDetailsOnTestsThatTriggerErrors() || $configuration->displayDetailsOnAllIssues(),
-            $configuration->displayDetailsOnTestsThatTriggerNotices() || $configuration->displayDetailsOnAllIssues(),
-            $configuration->displayDetailsOnTestsThatTriggerWarnings() || $configuration->displayDetailsOnAllIssues(),
+            $configuration->displayDetailsOnIncompleteTests(),
+            $configuration->displayDetailsOnSkippedTests(),
+            $configuration->displayDetailsOnTestsThatTriggerDeprecations(),
+            $configuration->displayDetailsOnTestsThatTriggerErrors(),
+            $configuration->displayDetailsOnTestsThatTriggerNotices(),
+            $configuration->displayDetailsOnTestsThatTriggerWarnings(),
             $configuration->reverseDefectList(),
         );
     }

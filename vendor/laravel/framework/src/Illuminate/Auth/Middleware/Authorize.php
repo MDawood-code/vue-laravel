@@ -22,6 +22,7 @@ class Authorize
      * Create a new middleware instance.
      *
      * @param  \Illuminate\Contracts\Auth\Access\Gate  $gate
+     * @return void
      */
     public function __construct(Gate $gate)
     {
@@ -31,7 +32,7 @@ class Authorize
     /**
      * Specify the ability and models for the middleware.
      *
-     * @param  \UnitEnum|string  $ability
+     * @param  \BackedEnum|string  $ability
      * @param  string  ...$models
      * @return string
      */

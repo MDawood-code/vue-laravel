@@ -2,8 +2,6 @@
 
 namespace Illuminate\Database\Eloquent\Factories;
 
-use Illuminate\Database\Eloquent\Attributes\UseFactory;
-
 /**
  * @template TFactory of \Illuminate\Database\Eloquent\Factories\Factory
  */
@@ -21,8 +19,8 @@ trait HasFactory
         $factory = static::newFactory() ?? Factory::factoryForModel(static::class);
 
         return $factory
-            ->count(is_numeric($count) ? $count : null)
-            ->state(is_callable($count) || is_array($count) ? $count : $state);
+                    ->count(is_numeric($count) ? $count : null)
+                    ->state(is_callable($count) || is_array($count) ? $count : $state);
     }
 
     /**
@@ -36,27 +34,6 @@ trait HasFactory
             return static::$factory::new();
         }
 
-        return static::getUseFactoryAttribute() ?? null;
-    }
-
-    /**
-     * Get the factory from the UseFactory class attribute.
-     *
-     * @return TFactory|null
-     */
-    protected static function getUseFactoryAttribute()
-    {
-        $attributes = (new \ReflectionClass(static::class))
-            ->getAttributes(UseFactory::class);
-
-        if ($attributes !== []) {
-            $useFactory = $attributes[0]->newInstance();
-
-            $factory = $useFactory->factoryClass::new();
-
-            $factory->guessModelNamesUsing(fn () => static::class);
-
-            return $factory;
-        }
+        return null;
     }
 }

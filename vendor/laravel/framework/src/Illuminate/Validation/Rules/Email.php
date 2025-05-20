@@ -2,13 +2,22 @@
 
 namespace Illuminate\Validation\Rules;
 
+use Egulias\EmailValidator\EmailValidator;
+use Egulias\EmailValidator\Validation\DNSCheckValidation;
+use Egulias\EmailValidator\Validation\Extra\SpoofCheckValidation;
+use Egulias\EmailValidator\Validation\MultipleValidationWithAnd;
+use Egulias\EmailValidator\Validation\NoRFCWarningsValidation;
+use Egulias\EmailValidator\Validation\RFCValidation;
+use Illuminate\Container\Container;
 use Illuminate\Contracts\Validation\DataAwareRule;
 use Illuminate\Contracts\Validation\Rule;
 use Illuminate\Contracts\Validation\ValidatorAwareRule;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Traits\Conditionable;
 use Illuminate\Support\Traits\Macroable;
+use Illuminate\Validation\Concerns\FilterEmailValidation;
 use InvalidArgumentException;
 
 class Email implements Rule, DataAwareRule, ValidatorAwareRule
@@ -190,17 +199,27 @@ class Email implements Rule, DataAwareRule, ValidatorAwareRule
             return false;
         }
 
-        $validator = Validator::make(
-            $this->data,
-            [$attribute => $this->buildValidationRules()],
-            $this->validator->customMessages,
-            $this->validator->customAttributes
-        );
+        $emailValidator = Container::getInstance()->make(EmailValidator::class);
 
-        if ($validator->fails()) {
-            $this->messages = array_merge($this->messages, $validator->messages()->all());
+        $passes = $emailValidator->isValid((string) $value, new MultipleValidationWithAnd($this->buildValidationRules()));
+
+        if (! $passes) {
+            $this->messages = [trans('validation.email', ['attribute' => $attribute])];
 
             return false;
+        }
+
+        if ($this->customRules) {
+            $validator = Validator::make(
+                $this->data,
+                [$attribute => $this->customRules],
+                $this->validator->customMessages,
+                $this->validator->customAttributes
+            );
+
+            if ($validator->fails()) {
+                return $this->fail($validator->messages()->all());
+            }
         }
 
         return true;
@@ -216,36 +235,51 @@ class Email implements Rule, DataAwareRule, ValidatorAwareRule
         $rules = [];
 
         if ($this->rfcCompliant) {
-            $rules[] = 'rfc';
+            $rules[] = new RFCValidation;
         }
 
         if ($this->strictRfcCompliant) {
-            $rules[] = 'strict';
+            $rules[] = new NoRFCWarningsValidation;
         }
 
         if ($this->validateMxRecord) {
-            $rules[] = 'dns';
+            $rules[] = new DNSCheckValidation;
         }
 
         if ($this->preventSpoofing) {
-            $rules[] = 'spoof';
+            $rules[] = new SpoofCheckValidation;
         }
 
         if ($this->nativeValidation) {
-            $rules[] = 'filter';
+            $rules[] = new FilterEmailValidation;
         }
 
         if ($this->nativeValidationWithUnicodeAllowed) {
-            $rules[] = 'filter_unicode';
+            $rules[] = FilterEmailValidation::unicode();
         }
 
         if ($rules) {
-            $rules = ['email:'.implode(',', $rules)];
-        } else {
-            $rules = ['email'];
+            return $rules;
         }
 
-        return array_merge(array_filter($rules), $this->customRules);
+        return [new RFCValidation];
+    }
+
+    /**
+     * Adds the given failures, and return false.
+     *
+     * @param  array|string  $messages
+     * @return bool
+     */
+    protected function fail($messages)
+    {
+        $messages = Collection::wrap($messages)
+            ->map(fn ($message) => $this->validator->getTranslator()->get($message))
+            ->all();
+
+        $this->messages = array_merge($this->messages, $messages);
+
+        return false;
     }
 
     /**

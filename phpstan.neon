@@ -1,0 +1,37 @@
+includes:
+    - ./vendor/larastan/larastan/extension.neon
+
+parameters:
+
+    paths:
+        - app/
+
+    # Level 9 is the highest level
+    level: 7
+
+    ignoreErrors:
+#        - '#Call to an undefined method Illuminate\\Database\\Eloquent\\Model::addMedia\(\)#'
+        - '#Access to an undefined property App\\Http\\Resources\\[a-zA-Z0-9::a-zA-Z]#'
+        - '#Call to an undefined method App\\Http\\Resources\\AddonResource::companyAddons\(\)#'
+        - '#Class App\\Models\\.* uses generic trait Illuminate\\Database\\Eloquent\\Factories\\HasFactory but does not specify its types: TFactory#'
+#        - '#\$callback of method Illuminate\\Database\\Eloquent\\Relations\\HasMany<App\\Models\\.*>::when\(\) expects \(callable\(Illuminate\\Database\\Eloquent\\Relations\\HasMany<App\\Models\\.*>, .*\|null\): void\)\|null, Closure\(Illuminate\\Database\\Eloquent\\Builder, .*\|null\): void given\.#i'
+#        - '#\$callback of method Illuminate\\Database\\Eloquent\\Builder<App\\Models\\.*>::when\(\) expects \(callable\(Illuminate\\Database\\Eloquent\\Builder<App\\Models\\.*>, .*\|null\): void\)\|null, Closure\(Illuminate\\Database\\Eloquent\\Builder, .*\|null\): void given\.#i'
+#        - '#Call to an undefined method Illuminate\\Database\\Eloquent\\Builder::adminStaffIsAuthUser\(\)#'
+#        - '#Parameter \#2 \$filePath of static method Maatwebsite\\Excel\\Facades\\Excel::import\(\) expects Illuminate\\Http\\UploadedFile\|string, array<int, Illuminate\\Http\\UploadedFile>\|Illuminate\\Http\\UploadedFile\|null given#i'
+#        - '#Cannot call method endOfDay\(\) on Carbon\\Carbon\|false#'
+#        - '#Cannot call method startOfDay\(\) on Carbon\\Carbon\|false#'
+#        - '#Access to an undefined property object::\$request#'
+#        - '#Parameter \#1 \$message of static method Illuminate\\Log\\Logger::debug\(\) expects array\|Illuminate\\Contracts\\Support\\Arrayable\|Illuminate\\Contracts\\Support\\Jsonable\|Illuminate\\Support\\Stringable\|string, string\|false given#'
+#        - '#Property App\\Models\\Invoice::\$details is not writable#'
+#        - '#Property App\\Models\\Payment::\$result \(string\|null\) does not accept string\|false#'
+#        - '#Property App\\Models\\Payment::\$result_details \(string\|null\) does not accept string\|false#'
+#        - '#PHPDoc tag @var#'
+#
+#    excludePaths:
+#        - ./*/*/FileToBeExcluded.php
+#
+#    checkMissingIterableValueType: false
+#        -
+#            message: '#Comparison operation ">" between int<min, 90> and 90 is always false#'
+#            paths:
+#                - app/Http/Controllers/API/Admin/SubscriptionsController.php

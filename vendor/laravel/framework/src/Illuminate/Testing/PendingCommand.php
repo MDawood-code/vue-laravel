@@ -10,7 +10,6 @@ use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Traits\Conditionable;
 use Illuminate\Support\Traits\Macroable;
-use Illuminate\Support\Traits\Tappable;
 use Mockery;
 use Mockery\Exception\NoMatchingExpectationException;
 use PHPUnit\Framework\TestCase as PHPUnitTestCase;
@@ -22,7 +21,8 @@ use Symfony\Component\Console\Question\ChoiceQuestion;
 
 class PendingCommand
 {
-    use Conditionable, Macroable, Tappable;
+    use Conditionable;
+    use Macroable;
 
     /**
      * The test being run.
@@ -80,6 +80,7 @@ class PendingCommand
      * @param  \Illuminate\Contracts\Container\Container  $app
      * @param  string  $command
      * @param  array  $parameters
+     * @return void
      */
     public function __construct(PHPUnitTestCase $test, Container $app, $command, $parameters)
     {
@@ -353,8 +354,6 @@ class PendingCommand
         $this->verifyExpectations();
         $this->flushExpectations();
 
-        $this->app->offsetUnset(OutputStyle::class);
-
         return $exitCode;
     }
 
@@ -444,8 +443,8 @@ class PendingCommand
     private function createABufferedOutputMock()
     {
         $mock = Mockery::mock(BufferedOutput::class.'[doWrite]')
-            ->shouldAllowMockingProtectedMethods()
-            ->shouldIgnoreMissing();
+                ->shouldAllowMockingProtectedMethods()
+                ->shouldIgnoreMissing();
 
         if ($this->test->expectsOutput === false) {
             $mock->shouldReceive('doWrite')->never();
@@ -492,12 +491,12 @@ class PendingCommand
 
         foreach ($this->test->unexpectedOutputSubstrings as $text => $displayed) {
             $mock->shouldReceive('doWrite')
-                ->atLeast()
-                ->times(0)
-                ->withArgs(fn ($output) => str_contains($output, $text))
-                ->andReturnUsing(function () use ($text) {
-                    $this->test->unexpectedOutputSubstrings[$text] = true;
-                });
+                 ->atLeast()
+                 ->times(0)
+                 ->withArgs(fn ($output) => str_contains($output, $text))
+                 ->andReturnUsing(function () use ($text) {
+                     $this->test->unexpectedOutputSubstrings[$text] = true;
+                 });
         }
 
         return $mock;

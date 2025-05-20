@@ -33,6 +33,7 @@ class SesV2Transport extends AbstractTransport implements Stringable
      *
      * @param  \Aws\SesV2\SesV2Client  $ses
      * @param  array  $options
+     * @return void
      */
     public function __construct(SesV2Client $ses, $options = [])
     {
@@ -68,10 +69,10 @@ class SesV2Transport extends AbstractTransport implements Stringable
                         'Source' => $message->getEnvelope()->getSender()->toString(),
                         'Destination' => [
                             'ToAddresses' => (new Collection($message->getEnvelope()->getRecipients()))
-                                ->map
-                                ->toString()
-                                ->values()
-                                ->all(),
+                                    ->map
+                                    ->toString()
+                                    ->values()
+                                    ->all(),
                         ],
                         'Content' => [
                             'Raw' => [

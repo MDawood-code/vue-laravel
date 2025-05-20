@@ -1,1 +1,25 @@
-node_modules
+# Laravel
+/vendor
+.env
+/storage/*.key
+/storage/*.log
+/storage/framework/*
+/storage/logs/*
+/bootstrap/cache/*
+
+# Node.js
+/node_modules
+
+# OS & IDE-specific
+.DS_Store
+.idea
+.vscode
+*.log
+npm-debug.log*
+
+# Build
+/public/hot
+/public/storage
+/public/mix-manifest.json
+/public/js
+/public/css
